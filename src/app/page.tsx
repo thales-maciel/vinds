@@ -1,95 +1,108 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import _default from "next/dist/client/router";
+import { useState } from "react";
+
+type WindowData = {
+    id: number;
+}
+
+function Window() {
+    const [position, setPosition] = useState({ top: 100, left: 100 });
+    const [size, setSize] = useState({ width: 200, height: 200 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+    const startDragging = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        setIsDragging(true);
+        setDragStart({
+            x: e.clientX - position.left,
+            y: e.clientY - position.top,
+        })
+    }
+
+    const stopDragging = () => {
+        setIsDragging(false);
+    }
+
+    const onDragging = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        if (!isDragging) return;
+
+        const newLeft = e.clientX - dragStart.x;
+        const newTop = e.clientY - dragStart.y;
+
+        setPosition({ top: newTop, left: newLeft });
+    }
+
+    // Logic for moving and resizing the window would go here
+
+    return (
+        <div
+            className="window"
+            style={{
+                position: "absolute",
+                top: position.top,
+                left: position.left,
+                width: size.width,
+                height: size.height,
+            }}
+            onMouseMove={onDragging}
+            onMouseUp={stopDragging}
+            onMouseLeave={stopDragging}
+        >
+            <div
+                className="title-bar"
+                onMouseDown={startDragging}
+                onMouseUp={stopDragging}
+                style={{ cursor: "move" }}
+            >
+                new window
+                <button>X</button>
+            </div>
+        </div>
+    );
+}
+
+function Desktop() {
+    const [startMenuOpen, setStartMenuOpen] = useState(false);
+
+    let windowID = 0;
+
+    const [windows, setWindows] = useState<WindowData[]>([]);
+
+    const toggleStartMenu = () => {
+        if (startMenuOpen) {
+            setStartMenuOpen(false);
+        } else {
+            setStartMenuOpen(true);
+        }
+    }
+
+    const newWindow = () => {
+        const newWindow = { id: windowID++ };
+        setWindows([...windows, newWindow]);
+        setStartMenuOpen(false);
+    }
+
+    return (
+        <main className="desktop">
+            <div className="toolbar">
+                <button onClick={toggleStartMenu} className="start-button">Start</button>
+            </div>
+            {startMenuOpen && (
+                <div className="start-menu">
+                    <div onClick={newWindow}>new window</div>
+                </div>
+            )}
+            {windows.map(window => (
+                <Window key={window.id} />
+            ))}
+        </main>
+    )
+}
 
 export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+    return (
+        <Desktop />
+    );
 }
